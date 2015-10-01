@@ -1,4 +1,4 @@
-package com.bms.resolver;
+package com.github.dmulcahey.resolver;
 
 import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;

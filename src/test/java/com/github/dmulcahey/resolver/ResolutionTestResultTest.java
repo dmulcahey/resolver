@@ -1,8 +1,10 @@
-package com.bms.resolver;
+package com.github.dmulcahey.resolver;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+
+import com.github.dmulcahey.resolver.ResolutionTestResult;
 
 public class ResolutionTestResultTest {
 	

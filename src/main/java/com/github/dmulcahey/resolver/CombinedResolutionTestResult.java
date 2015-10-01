@@ -1,4 +1,4 @@
-package com.bms.resolver;
+package com.github.dmulcahey.resolver;
 
 import java.util.List;
 

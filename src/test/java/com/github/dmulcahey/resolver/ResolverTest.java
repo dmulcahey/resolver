@@ -1,4 +1,4 @@
-package com.bms.resolver;
+package com.github.dmulcahey.resolver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -11,6 +11,10 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
+import com.github.dmulcahey.resolver.AbstractResolver;
+import com.github.dmulcahey.resolver.ResolutionActivity;
+import com.github.dmulcahey.resolver.ResolutionTest;
 
 public class ResolverTest {
 	
