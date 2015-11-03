@@ -31,13 +31,6 @@
 
 	<inceptionYear>2013</inceptionYear>
 
-	<licenses>
-		<license>
-			<name>The Apache Software License, Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
-	</licenses>
-
 	<scm>
 		<connection>scm:git:https://github.com/dmulcahey/resolver.git</connection>
 		<developerConnection>scm:git:git@github.com:dmulcahey/resolver.git</developerConnection>
