@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 import lombok.SneakyThrows;
 
 import org.reflections.Reflections;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -27,7 +29,7 @@ import com.google.common.collect.Sets;
  */
 public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 	private final Logger logger = Logger.getLogger(this.getClass().getName());
-	private static final Reflections REFLECTIONS = new Reflections();
+	private static final Reflections REFLECTIONS = new Reflections(new ConfigurationBuilder().addUrls(ClasspathHelper.forManifest(ClasspathHelper.forClassLoader())));
 	private Set<ResolutionActivity<I>> preresolutionActivities;
 	private Set<ResolutionActivity<O>> postresolutionActivities;
 	private Set<ResolutionTest<I>> preresolutionTests;
