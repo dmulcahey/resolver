@@ -173,6 +173,18 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 		return Optional.absent();
 	}
 	
+	protected <T> Set<Class<? extends T>> getSubTypesOf(Class<T> clazz){
+		return REFLECTIONS.getSubTypesOf(clazz);
+	}
+	
+	protected <T> Set<Class<?>> getTypesAnnotatedWith(Class<? extends Annotation> clazz, boolean honorInherited){
+		return REFLECTIONS.getTypesAnnotatedWith(clazz, honorInherited);
+	}
+	
+	protected <T> Set<Class<?>> getTypesAnnotatedWith(Annotation annotation, boolean honorInherited){
+		return REFLECTIONS.getTypesAnnotatedWith(annotation, honorInherited);
+	}
+	
 	private void handleResolutionTestResults(CombinedResolutionTestResult resolutionTestResult){
 		if(!resolutionTestResult.isSuccessful()){
 			for(ResolutionTestResult result : resolutionTestResult.getFailedTestResults()){
