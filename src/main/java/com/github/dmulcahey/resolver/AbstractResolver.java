@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.SneakyThrows;
-import lombok.extern.apachecommons.CommonsLog;
+import lombok.extern.slf4j.Slf4j;
 
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
@@ -26,7 +26,7 @@ import com.google.common.collect.Sets;
  * Perform postresolution activities using valid output
  * 
  */
-@CommonsLog
+@Slf4j
 public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 	private static final Reflections REFLECTIONS = new Reflections(new ConfigurationBuilder().addUrls(ClasspathHelper.forManifest(ClasspathHelper.forClassLoader())));
 	private Set<ResolutionActivity<I>> preresolutionActivities;
@@ -43,16 +43,16 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 	@Override
 	public final O resolve(final I input) {
 		String thisClassName = this.getClass().getSimpleName();
-		log.trace(thisClassName + " resolve start");
+		log.trace("{} resolve start", thisClassName);
 		CombinedResolutionTestResult preresolutionTestResults = new CombinedResolutionTestResult();
 		int numPreresolutionTests = getPreresolutionTests().size();
 		if(numPreresolutionTests > 0){
-			log.debug("Executing " + numPreresolutionTests + " preresolution tests in " + thisClassName);
+			log.debug("Executing {} preresolution tests in {}", numPreresolutionTests, thisClassName);
 			List<ResolutionTest<I>> sortedPreresolutionTests = Lists.newArrayList(getPreresolutionTests());
 			Collections.sort(sortedPreresolutionTests, Collections.reverseOrder(new ResolutionOrdering<ResolutionTest<I>>()));
 			for(ResolutionTest<I> resolutionTest : sortedPreresolutionTests){
 				String testClassName = resolutionTest.getClass().getSimpleName();
-				log.debug("Executing preresolution test: " + testClassName);
+				log.debug("Executing preresolution test: {}", testClassName);
 				preresolutionTestResults.addResolutionTestResult(resolutionTest.execute(input), testClassName);
 			}
 			handlePreresolutionTestResults(preresolutionTestResults);
@@ -60,27 +60,27 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 		
 		int numPreresolutionActivities = getPreresolutionActivities().size();
 		if(numPreresolutionActivities > 0){
-			log.debug("Executing " + numPreresolutionActivities + " preresolution activities in " + thisClassName);
+			log.debug("Executing {} preresolution activities in {}", numPreresolutionActivities , thisClassName);
 			List<ResolutionActivity<I>> sortedPreresolutionActivities = Lists.newArrayList(getPreresolutionActivities());
 			Collections.sort(sortedPreresolutionActivities, Collections.reverseOrder(new ResolutionOrdering<ResolutionActivity<I>>()));
 			for(ResolutionActivity<I> resolutionActivity : sortedPreresolutionActivities){
-				log.debug("Executing preresolution activity: " + resolutionActivity.getClass().getSimpleName());
+				log.debug("Executing preresolution activity: {}", resolutionActivity.getClass().getSimpleName());
 				resolutionActivity.perform(input);
 			}
 		}
 		
-		log.trace(thisClassName + " resolving...");
+		log.trace("{} resolving...", thisClassName);
 		O output = doResolution(input);
 		
 		CombinedResolutionTestResult postresolutionTestResults = new CombinedResolutionTestResult();
 		int numPostresolutionTests = getPostresolutionTests().size();
 		if(numPostresolutionTests > 0){
-			log.debug("Executing " + numPostresolutionTests + " postresolution tests in " + thisClassName);
+			log.debug("Executing {} postresolution tests in {}", numPostresolutionTests, thisClassName);
 			List<ResolutionTest<O>> sortedPostresolutionTests = Lists.newArrayList(getPostresolutionTests());
 			Collections.sort(sortedPostresolutionTests, Collections.reverseOrder(new ResolutionOrdering<ResolutionTest<O>>()));
 			for(ResolutionTest<O> resolutionTest : sortedPostresolutionTests){
 				String testClassName = resolutionTest.getClass().getSimpleName();
-				log.debug("Executing postresolution test: " + testClassName);
+				log.debug("Executing postresolution test: {}", testClassName);
 				postresolutionTestResults.addResolutionTestResult(resolutionTest.execute(output), testClassName);
 			}
 			handlePostresolutionTestResults(postresolutionTestResults);
@@ -88,15 +88,15 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 		
 		int numPostresolutionActivities = getPostresolutionActivities().size();
 		if(numPostresolutionActivities > 0){
-			log.debug("Executing " + numPostresolutionActivities + " postresolution activities in " + thisClassName);
+			log.debug("Executing {} postresolution activities in {}", numPostresolutionActivities, thisClassName);
 			List<ResolutionActivity<O>> sortedPostresolutionActivities = Lists.newArrayList(getPostresolutionActivities());
 			Collections.sort(sortedPostresolutionActivities, Collections.reverseOrder(new ResolutionOrdering<ResolutionActivity<O>>()));
 			for(ResolutionActivity<O> postresolutionActivity : sortedPostresolutionActivities){
-				log.debug("Executing postresolution activity: " + postresolutionActivity.getClass().getSimpleName());
+				log.debug("Executing postresolution activity: {}", postresolutionActivity.getClass().getSimpleName());
 				postresolutionActivity.perform(output);
 			}
 		}
-		log.trace(thisClassName + " resolve complete");
+		log.trace("{} resolve complete", thisClassName);
 		return output;
 	}
 	
@@ -188,20 +188,20 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 		if(!resolutionTestResult.isSuccessful()){
 			for(ResolutionTestResult result : resolutionTestResult.getFailedTestResults()){
 				if(result.getErrorMessage().isPresent()){
-					log.fatal("Error in " + result.getTestClassName() + ": " + result.getErrorMessage().get());
+					log.error("Error in {}: {}", result.getTestClassName(), result.getErrorMessage().get());
 				}
 				if(result.getPossibleException().isPresent()){
-					log.fatal("Exception thrown in " + result.getTestClassName() , result.getPossibleException().get());
+					log.error("Exception thrown in {}: {}", result.getTestClassName(), result.getPossibleException().get());
 				}
 			}
 			throw new RuntimeException("Resolution Failed...");
 		}else{
 			for(ResolutionTestResult result : resolutionTestResult.getResolutionTestResults()){
 				if(result.getInformationMessage().isPresent()){
-					log.info(result.getTestClassName() + ": " + result.getInformationMessage().get());
+					log.info("{}: {}", result.getTestClassName(), result.getInformationMessage().get());
 				}
 				if(result.getWarningMessage().isPresent()){
-					log.warn(result.getTestClassName() + ": " + result.getWarningMessage().get());
+					log.warn("{}: {}", result.getTestClassName(), result.getWarningMessage().get());
 				}
 			}
 		}
@@ -211,8 +211,8 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 	@SneakyThrows
 	private void initialize(){
 		String thisClassName = this.getClass().getSimpleName();
-		log.debug("initializing " + thisClassName + " started");
-		log.trace("loading preresolution tests in " + thisClassName);
+		log.debug("initializing {} started", thisClassName);
+		log.trace("loading preresolution tests in {}", thisClassName);
 		Optional<Class<? extends Annotation>> preresolutionTestAnnotationClass = getPreresolutionTestAnnotationClass();
 		if(preresolutionTestAnnotationClass.isPresent()){
 			Set<Class<?>> preresolutionTests = REFLECTIONS.getTypesAnnotatedWith(preresolutionTestAnnotationClass.get());
@@ -220,7 +220,7 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 				this.addPreresolutionTest((ResolutionTest<I>) preresolutionTestClass.getConstructor().newInstance());
 			}
 		}
-		log.trace("loading postresolution tests in " + thisClassName);
+		log.trace("loading postresolution tests in {}", thisClassName);
 		Optional<Class<? extends Annotation>> postresolutionTestAnnotationClass = getPostresolutionTestAnnotationClass();
 		if(postresolutionTestAnnotationClass.isPresent()){
 			Set<Class<?>> postresolutionTests = REFLECTIONS.getTypesAnnotatedWith(postresolutionTestAnnotationClass.get());
@@ -228,7 +228,7 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 				this.addPostresolutionTest((ResolutionTest<O>) postresolutionTestClass.getConstructor().newInstance());
 			}
 		}
-		log.trace("loading preresolution activities in " + thisClassName);
+		log.trace("loading preresolution activities in {}", thisClassName);
 		Optional<Class<? extends Annotation>> preresolutionActivityAnnotationClass = getPreresolutionActivityAnnotationClass();
 		if(preresolutionActivityAnnotationClass.isPresent()){
 			Set<Class<?>> preresolutionActivities = REFLECTIONS.getTypesAnnotatedWith(preresolutionActivityAnnotationClass.get());
@@ -236,7 +236,7 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 				this.addPreresolutionActivity((ResolutionActivity<I>) preresolutionActivityClass.getConstructor().newInstance());
 			}
 		}
-		log.trace("loading postresolution activities in " + thisClassName);
+		log.trace("loading postresolution activities in {}", thisClassName);
 		Optional<Class<? extends Annotation>> postresolutionActivityAnnotationClass = getPostresolutionActivityAnnotationClass();
 		if(postresolutionActivityAnnotationClass.isPresent()){
 			Set<Class<?>> postresolutionActivities = REFLECTIONS.getTypesAnnotatedWith(postresolutionActivityAnnotationClass.get());
@@ -244,7 +244,7 @@ public abstract class AbstractResolver<I,O> implements Resolver<I,O> {
 				this.addPostresolutionActivity((ResolutionActivity<O>) postresolutionActivityClass.getConstructor().newInstance());
 			}
 		}
-		log.debug("initializing  " + thisClassName + " complete");
+		log.debug("initializing {} complete", thisClassName);
 	}
 	
 }
